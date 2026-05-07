@@ -1,0 +1,1 @@
+/usr/bin/c++ -O3 -DNDEBUG CMakeFiles/run_tests.dir/tests/test_tensor.cpp.o -o run_tests 

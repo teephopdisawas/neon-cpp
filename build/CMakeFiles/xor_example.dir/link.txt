@@ -1,0 +1,1 @@
+/usr/bin/c++ -O3 -DNDEBUG CMakeFiles/xor_example.dir/examples/xor_example.cpp.o -o xor_example 

@@ -1,0 +1,4 @@
+/home/ubuntu/.openclaw/workspace/coding/neon/build/CMakeFiles/xor_example.dir
+/home/ubuntu/.openclaw/workspace/coding/neon/build/CMakeFiles/run_tests.dir
+/home/ubuntu/.openclaw/workspace/coding/neon/build/CMakeFiles/edit_cache.dir
+/home/ubuntu/.openclaw/workspace/coding/neon/build/CMakeFiles/rebuild_cache.dir
