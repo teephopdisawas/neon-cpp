@@ -1,0 +1,790 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Neon AI Framework</title>
+<style>
+  :root {
+    --bg: #0d1117;
+    --surface: #161b22;
+    --border: #30363d;
+    --text: #c9d1d9;
+    --text-dim: #8b949e;
+    --accent: #58a6ff;
+    --accent-glow: rgba(88, 166, 255, 0.15);
+    --green: #3fb950;
+    --red: #f85149;
+    --orange: #d29922;
+    --purple: #bc8cff;
+    --neon: #00ff88;
+    --neon-dim: rgba(0, 255, 136, 0.1);
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Helvetica, Arial, sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    min-height: 100vh;
+  }
+
+  /* ── Header ─────────────────────────────────── */
+  .header {
+    background: var(--surface);
+    border-bottom: 1px solid var(--border);
+    padding: 16px 24px;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+  }
+  .header h1 {
+    font-size: 1.3rem;
+    font-weight: 600;
+    background: linear-gradient(135deg, var(--neon), var(--accent));
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+  }
+  .header .badge {
+    background: var(--neon-dim);
+    color: var(--neon);
+    border: 1px solid rgba(0,255,136,0.3);
+    padding: 2px 8px;
+    border-radius: 12px;
+    font-size: 0.75rem;
+    font-weight: 500;
+  }
+  .header .status {
+    margin-left: auto;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 0.85rem;
+    color: var(--text-dim);
+  }
+  .status-dot {
+    width: 8px; height: 8px;
+    border-radius: 50%;
+    background: var(--green);
+    animation: pulse 2s infinite;
+  }
+  .status-dot.offline { background: var(--red); animation: none; }
+
+  @keyframes pulse {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0.4; }
+  }
+
+  /* ── Layout ─────────────────────────────────── */
+  .container {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 24px;
+    display: grid;
+    grid-template-columns: 320px 1fr;
+    gap: 24px;
+  }
+
+  @media (max-width: 800px) {
+    .container { grid-template-columns: 1fr; }
+  }
+
+  /* ── Cards ──────────────────────────────────── */
+  .card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 20px;
+    margin-bottom: 16px;
+  }
+  .card h2 {
+    font-size: 0.95rem;
+    font-weight: 600;
+    margin-bottom: 16px;
+    color: var(--text);
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+
+  /* ── Form Elements ──────────────────────────── */
+  label {
+    display: block;
+    font-size: 0.8rem;
+    color: var(--text-dim);
+    margin-bottom: 4px;
+    font-weight: 500;
+  }
+  select, input[type="number"], input[type="text"] {
+    width: 100%;
+    padding: 8px 12px;
+    background: var(--bg);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    color: var(--text);
+    font-size: 0.9rem;
+    margin-bottom: 12px;
+    outline: none;
+    transition: border-color 0.2s;
+  }
+  select:focus, input:focus {
+    border-color: var(--accent);
+    box-shadow: 0 0 0 3px var(--accent-glow);
+  }
+
+  /* ── Buttons ────────────────────────────────── */
+  .btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 10px 20px;
+    border: none;
+    border-radius: 8px;
+    font-size: 0.9rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s;
+  }
+  .btn-primary {
+    background: linear-gradient(135deg, #00ff88, #00cc6a);
+    color: #000;
+    width: 100%;
+    justify-content: center;
+  }
+  .btn-primary:hover { filter: brightness(1.1); transform: translateY(-1px); }
+  .btn-primary:disabled { opacity: 0.5; cursor: not-allowed; transform: none; }
+  .btn-danger {
+    background: rgba(248, 81, 73, 0.15);
+    color: var(--red);
+    border: 1px solid rgba(248, 81, 73, 0.3);
+    width: 100%;
+    justify-content: center;
+  }
+  .btn-danger:hover { background: rgba(248, 81, 73, 0.25); }
+  .btn-secondary {
+    background: var(--surface);
+    color: var(--text);
+    border: 1px solid var(--border);
+  }
+  .btn-secondary:hover { background: var(--border); }
+  .btn-sm { padding: 6px 12px; font-size: 0.8rem; }
+
+  /* ── Layer Builder ──────────────────────────── */
+  .layer-item {
+    background: var(--bg);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 12px;
+    margin-bottom: 8px;
+    display: grid;
+    grid-template-columns: 1fr 1fr auto;
+    gap: 8px;
+    align-items: end;
+  }
+  .layer-item label { font-size: 0.7rem; text-transform: uppercase; letter-spacing: 0.5px; }
+  .layer-item select, .layer-item input { margin-bottom: 0; }
+  .layer-remove {
+    background: none;
+    border: 1px solid var(--border);
+    color: var(--text-dim);
+    width: 32px; height: 32px;
+    border-radius: 6px;
+    cursor: pointer;
+    font-size: 1.1rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+  .layer-remove:hover { color: var(--red); border-color: var(--red); }
+  .add-layer-btn {
+    width: 100%;
+    padding: 8px;
+    background: none;
+    border: 1px dashed var(--border);
+    border-radius: 8px;
+    color: var(--text-dim);
+    cursor: pointer;
+    font-size: 0.85rem;
+    transition: all 0.2s;
+  }
+  .add-layer-btn:hover { border-color: var(--accent); color: var(--accent); }
+
+  /* ── Chart ──────────────────────────────────── */
+  .chart-container {
+    position: relative;
+    height: 250px;
+    background: var(--bg);
+    border-radius: 8px;
+    border: 1px solid var(--border);
+    overflow: hidden;
+  }
+  canvas { display: block; width: 100%; height: 100%; }
+
+  /* ── Stats ──────────────────────────────────── */
+  .stats-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 12px;
+    margin-bottom: 16px;
+  }
+  .stat-box {
+    background: var(--bg);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 12px;
+    text-align: center;
+  }
+  .stat-value {
+    font-size: 1.4rem;
+    font-weight: 700;
+    color: var(--neon);
+  }
+  .stat-label {
+    font-size: 0.7rem;
+    color: var(--text-dim);
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    margin-top: 2px;
+  }
+
+  /* ── Predictions Table ──────────────────────── */
+  .predictions-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 0.85rem;
+  }
+  .predictions-table th {
+    text-align: left;
+    padding: 8px 12px;
+    color: var(--text-dim);
+    font-size: 0.7rem;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    border-bottom: 1px solid var(--border);
+  }
+  .predictions-table td {
+    padding: 8px 12px;
+    border-bottom: 1px solid rgba(48, 54, 61, 0.5);
+  }
+  .predictions-table tr:last-child td { border-bottom: none; }
+
+  /* ── Progress Bar ───────────────────────────── */
+  .progress-bar {
+    width: 100%;
+    height: 6px;
+    background: var(--bg);
+    border-radius: 3px;
+    overflow: hidden;
+    margin-top: 12px;
+  }
+  .progress-fill {
+    height: 100%;
+    background: linear-gradient(90deg, var(--neon), var(--accent));
+    border-radius: 3px;
+    transition: width 0.3s ease;
+    width: 0%;
+  }
+
+  /* ── Log ────────────────────────────────────── */
+  .log {
+    background: var(--bg);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 12px;
+    font-family: 'SF Mono', 'Fira Code', monospace;
+    font-size: 0.75rem;
+    max-height: 150px;
+    overflow-y: auto;
+    color: var(--text-dim);
+  }
+  .log-entry { margin-bottom: 2px; }
+  .log-entry.info { color: var(--accent); }
+  .log-entry.success { color: var(--green); }
+  .log-entry.error { color: var(--red); }
+  .log-entry.warn { color: var(--orange); }
+
+  /* ── Tabs ───────────────────────────────────── */
+  .tabs {
+    display: flex;
+    gap: 4px;
+    margin-bottom: 16px;
+  }
+  .tab {
+    padding: 8px 16px;
+    background: none;
+    border: 1px solid transparent;
+    border-radius: 8px;
+    color: var(--text-dim);
+    cursor: pointer;
+    font-size: 0.85rem;
+    font-weight: 500;
+  }
+  .tab.active {
+    background: var(--accent-glow);
+    color: var(--accent);
+    border-color: rgba(88, 166, 255, 0.2);
+  }
+  .tab:hover:not(.active) { color: var(--text); }
+  .tab-content { display: none; }
+  .tab-content.active { display: block; }
+
+  /* ── Animations ─────────────────────────────── */
+  .fade-in { animation: fadeIn 0.3s ease; }
+  @keyframes fadeIn { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: translateY(0); } }
+
+  /* ── Scrollbar ──────────────────────────────── */
+  ::-webkit-scrollbar { width: 6px; }
+  ::-webkit-scrollbar-track { background: transparent; }
+  ::-webkit-scrollbar-thumb { background: var(--border); border-radius: 3px; }
+  ::-webkit-scrollbar-thumb:hover { background: var(--text-dim); }
+</style>
+</head>
+<body>
+
+<div class="header">
+  <h1>🔶 Neon AI</h1>
+  <span class="badge">v0.2.0</span>
+  <div class="status">
+    <div class="status-dot" id="statusDot"></div>
+    <span id="statusText">Connecting...</span>
+  </div>
+</div>
+
+<div class="container">
+  <!-- ── Left Panel: Config ──────────────────── -->
+  <div class="left-panel">
+    <div class="card">
+      <h2>⚙️ Model Configuration</h2>
+
+      <div class="tabs">
+        <button class="tab active" onclick="switchTab('builder', this)">Builder</button>
+        <button class="tab" onclick="switchTab('json', this)">JSON</button>
+      </div>
+
+      <!-- Builder Tab -->
+      <div id="builderTab" class="tab-content active">
+        <label>Dataset</label>
+        <select id="dataset">
+          <option value="xor">XOR Classification</option>
+          <option value="circle">Circle Classification</option>
+        </select>
+
+        <label>Optimizer</label>
+        <select id="optimizer">
+          <option value="sgd">SGD (Momentum)</option>
+          <option value="adam">Adam</option>
+        </select>
+
+        <label>Loss Function</label>
+        <select id="loss">
+          <option value="bce">Binary Cross-Entropy</option>
+          <option value="mse">Mean Squared Error</option>
+          <option value="cross_entropy">Categorical Cross-Entropy</option>
+        </select>
+
+        <label>Learning Rate</label>
+        <input type="number" id="lr" value="0.5" step="0.01" min="0.0001" max="10">
+
+        <label>Epochs</label>
+        <input type="number" id="epochs" value="2000" step="100" min="100" max="100000">
+
+        <label>Layers</label>
+        <div id="layerList">
+          <!-- Layers added dynamically -->
+        </div>
+        <button class="add-layer-btn" onclick="addLayer()">+ Add Layer</button>
+      </div>
+
+      <!-- JSON Tab -->
+      <div id="jsonTab" class="tab-content">
+        <label>Config JSON</label>
+        <textarea id="configJson" style="width:100%;height:300px;background:var(--bg);border:1px solid var(--border);border-radius:8px;color:var(--text);padding:12px;font-family:monospace;font-size:0.8rem;resize:vertical;outline:none;" spellcheck="false"></textarea>
+        <button class="btn btn-secondary btn-sm" style="margin-top:8px;width:100%" onclick="loadJsonConfig()">Load from JSON</button>
+      </div>
+    </div>
+
+    <div class="card" style="margin-top:16px;">
+      <h2>🚀 Training</h2>
+      <button class="btn btn-primary" id="trainBtn" onclick="startTraining()">
+        ▶ Start Training
+      </button>
+      <div class="progress-bar">
+        <div class="progress-fill" id="progressFill"></div>
+      </div>
+      <button class="btn btn-danger" style="margin-top:8px" id="stopBtn" onclick="stopTraining()" disabled>
+        ⏹ Stop
+      </button>
+    </div>
+  </div>
+
+  <!-- ── Right Panel: Results ────────────────── -->
+  <div class="right-panel">
+    <!-- Stats -->
+    <div class="stats-grid">
+      <div class="stat-box">
+        <div class="stat-value" id="statEpoch">0</div>
+        <div class="stat-label">Epoch</div>
+      </div>
+      <div class="stat-box">
+        <div class="stat-value" id="statLoss">—</div>
+        <div class="stat-label">Loss</div>
+      </div>
+      <div class="stat-box">
+        <div class="stat-value" id="statStatus">Idle</div>
+        <div class="stat-label">Status</div>
+      </div>
+    </div>
+
+    <!-- Loss Chart -->
+    <div class="card">
+      <h2>📉 Loss Curve</h2>
+      <div class="chart-container">
+        <canvas id="lossChart"></canvas>
+      </div>
+    </div>
+
+    <!-- Predictions -->
+    <div class="card">
+      <h2>🔮 Predictions</h2>
+      <div id="predictionsArea">
+        <p style="color:var(--text-dim);font-size:0.85rem;">Train a model to see predictions here.</p>
+      </div>
+    </div>
+
+    <!-- Log -->
+    <div class="card">
+      <h2>📋 Log</h2>
+      <div class="log" id="logArea">
+        <div class="log-entry info">Ready. Configure your model and click Start Training.</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+// ─── State ───────────────────────────────────────
+const API = window.location.origin + '/api';
+let pollInterval = null;
+let currentJobId = null;
+let lossData = [];
+let layerCount = 0;
+
+// ─── Init ────────────────────────────────────────
+window.addEventListener('DOMContentLoaded', () => {
+  addLayer(8, 'tanh');
+  addLayer(1, 'sigmoid');
+  updateJsonFromBuilder();
+  checkHealth();
+  setInterval(checkHealth, 5000);
+});
+
+// ─── Health Check ────────────────────────────────
+async function checkHealth() {
+  try {
+    const r = await fetch(API + '/health');
+    const j = await r.json();
+    document.getElementById('statusDot').classList.remove('offline');
+    document.getElementById('statusText').textContent = 'Connected';
+  } catch (e) {
+    document.getElementById('statusDot').classList.add('offline');
+    document.getElementById('statusText').textContent = 'Offline';
+  }
+}
+
+// ─── Tabs ────────────────────────────────────────
+function switchTab(tab, btn) {
+  document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+  document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
+  btn.classList.add('active');
+  document.getElementById(tab + 'Tab').classList.add('active');
+  if (tab === 'json') updateJsonFromBuilder();
+}
+
+// ─── Layer Builder ───────────────────────────────
+function addLayer(units = 4, activation = 'relu') {
+  layerCount++;
+  const id = layerCount;
+  const div = document.createElement('div');
+  div.className = 'layer-item fade-in';
+  div.id = `layer_${id}`;
+  div.innerHTML = `
+    <div>
+      <label>Units</label>
+      <input type="number" value="${units}" min="1" max="1024" class="layer-units">
+    </div>
+    <div>
+      <label>Activation</label>
+      <select class="layer-act">
+        <option value="relu" ${activation === 'relu' ? 'selected' : ''}>ReLU</option>
+        <option value="sigmoid" ${activation === 'sigmoid' ? 'selected' : ''}>Sigmoid</option>
+        <option value="tanh" ${activation === 'tanh' ? 'selected' : ''}>Tanh</option>
+        <option value="softmax" ${activation === 'softmax' ? 'selected' : ''}>Softmax</option>
+      </select>
+    </div>
+    <button class="layer-remove" onclick="removeLayer(${id})" title="Remove layer">✕</button>
+  `;
+  document.getElementById('layerList').appendChild(div);
+  updateJsonFromBuilder();
+}
+
+function removeLayer(id) {
+  const el = document.getElementById(`layer_${id}`);
+  if (el) el.remove();
+  updateJsonFromBuilder();
+}
+
+function getBuilderConfig() {
+  const layers = [];
+  document.querySelectorAll('.layer-item').forEach(el => {
+    const units = parseInt(el.querySelector('.layer-units').value) || 4;
+    const act = el.querySelector('.layer-act').value;
+    layers.push({ type: 'dense', units, activation: act });
+  });
+  return {
+    name: 'web-model',
+    dataset: document.getElementById('dataset').value,
+    optimizer: document.getElementById('optimizer').value,
+    loss: document.getElementById('loss').value,
+    learning_rate: parseFloat(document.getElementById('lr').value) || 0.01,
+    epochs: parseInt(document.getElementById('epochs').value) || 100,
+    layers
+  };
+}
+
+function updateJsonFromBuilder() {
+  const config = getBuilderConfig();
+  document.getElementById('configJson').value = JSON.stringify(config, null, 2);
+}
+
+function loadJsonConfig() {
+  try {
+    const config = JSON.parse(document.getElementById('configJson').value);
+    if (config.dataset) document.getElementById('dataset').value = config.dataset;
+    if (config.optimizer) document.getElementById('optimizer').value = config.optimizer;
+    if (config.loss) document.getElementById('loss').value = config.loss;
+    if (config.learning_rate) document.getElementById('lr').value = config.learning_rate;
+    if (config.epochs) document.getElementById('epochs').value = config.epochs;
+
+    // Rebuild layers
+    document.getElementById('layerList').innerHTML = '';
+    layerCount = 0;
+    if (config.layers && Array.isArray(config.layers)) {
+      config.layers.forEach(l => addLayer(l.units, l.activation));
+    }
+    log('Loaded config from JSON', 'success');
+    switchTab('builder', document.querySelector('.tab'));
+  } catch (e) {
+    log('Invalid JSON: ' + e.message, 'error');
+  }
+}
+
+// ─── Training ────────────────────────────────────
+async function startTraining() {
+  const config = getBuilderConfig();
+  if (config.layers.length === 0) {
+    log('Add at least one layer!', 'error');
+    return;
+  }
+
+  log('Starting training...', 'info');
+  document.getElementById('trainBtn').disabled = true;
+  document.getElementById('stopBtn').disabled = false;
+  lossData = [];
+  drawChart();
+
+  try {
+    const r = await fetch(API + '/train', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(config)
+    });
+    const j = await r.json();
+    if (j.job_id) {
+      currentJobId = j.job_id;
+      log(`Job started: ${j.job_id}`, 'success');
+      pollInterval = setInterval(pollJob, 200);
+    } else if (j.error) {
+      log('Error: ' + j.error, 'error');
+      resetUI();
+    }
+  } catch (e) {
+    log('Failed to start: ' + e.message, 'error');
+    resetUI();
+  }
+}
+
+async function stopTraining() {
+  if (!currentJobId) return;
+  try {
+    await fetch(API + '/jobs/' + currentJobId + '/stop', { method: 'POST' });
+    log('Training stopped.', 'warn');
+  } catch (e) {
+    log('Failed to stop: ' + e.message, 'error');
+  }
+}
+
+async function pollJob() {
+  if (!currentJobId) return;
+  try {
+    const r = await fetch(API + '/jobs/' + currentJobId);
+    const j = await r.json();
+
+    document.getElementById('statEpoch').textContent = j.current_epoch;
+    document.getElementById('statLoss').textContent = j.current_loss ? j.current_loss.toFixed(6) : '—';
+    document.getElementById('statStatus').textContent = j.status;
+
+    const pct = j.epochs > 0 ? (j.current_epoch / j.epochs * 100) : 0;
+    document.getElementById('progressFill').style.width = pct + '%';
+
+    if (j.loss_history && j.loss_history.length > 0) {
+      lossData = j.loss_history;
+      drawChart();
+    }
+
+    if (j.status === 'completed' || j.status === 'error' || j.status === 'stopped') {
+      clearInterval(pollInterval);
+      pollInterval = null;
+      resetUI();
+
+      if (j.status === 'completed') {
+        log(`Training complete! Final loss: ${j.current_loss.toFixed(6)}`, 'success');
+        showPredictions();
+      } else if (j.status === 'error') {
+        log('Error: ' + j.error_message, 'error');
+      }
+    }
+  } catch (e) {
+    // ignore poll errors
+  }
+}
+
+function resetUI() {
+  document.getElementById('trainBtn').disabled = false;
+  document.getElementById('stopBtn').disabled = true;
+  currentJobId = null;
+}
+
+// ─── Predictions ─────────────────────────────────
+async function showPredictions() {
+  try {
+    const r = await fetch(API + '/demo');
+    const j = await r.json();
+    if (j.predictions) {
+      let html = '<table class="predictions-table"><thead><tr><th>Input</th><th>Predicted</th><th>Expected</th><th>✓</th></tr></thead><tbody>';
+      j.predictions.forEach(p => {
+        const correct = Math.abs(p.predicted - p.expected) < 0.5;
+        const check = correct ? '✅' : '❌';
+        html += `<tr>
+          <td>[${p.input.map(v => v.toFixed(0)).join(', ')}]</td>
+          <td>${p.predicted.toFixed(4)}</td>
+          <td>${p.expected.toFixed(0)}</td>
+          <td>${check}</td>
+        </tr>`;
+      });
+      html += '</tbody></table>';
+      document.getElementById('predictionsArea').innerHTML = html;
+    }
+  } catch (e) {
+    // ignore
+  }
+}
+
+// ─── Chart ───────────────────────────────────────
+function drawChart() {
+  const canvas = document.getElementById('lossChart');
+  const ctx = canvas.getContext('2d');
+  const rect = canvas.parentElement.getBoundingClientRect();
+  canvas.width = rect.width * 2;
+  canvas.height = rect.height * 2;
+  ctx.scale(2, 2);
+  const w = rect.width, h = rect.height;
+
+  ctx.clearRect(0, 0, w, h);
+
+  if (lossData.length < 2) {
+    ctx.fillStyle = '#8b949e';
+    ctx.font = '14px sans-serif';
+    ctx.textAlign = 'center';
+    ctx.fillText('Loss curve will appear here during training...', w / 2, h / 2);
+    return;
+  }
+
+  const pad = { top: 20, right: 20, bottom: 30, left: 50 };
+  const cw = w - pad.left - pad.right;
+  const ch = h - pad.top - pad.bottom;
+
+  const maxLoss = Math.max(...lossData);
+  const minLoss = Math.min(...lossData);
+  const range = maxLoss - minLoss || 1;
+
+  // Grid
+  ctx.strokeStyle = '#30363d';
+  ctx.lineWidth = 0.5;
+  for (let i = 0; i <= 4; i++) {
+    const y = pad.top + (ch / 4) * i;
+    ctx.beginPath();
+    ctx.moveTo(pad.left, y);
+    ctx.lineTo(pad.left + cw, y);
+    ctx.stroke();
+
+    const val = maxLoss - (range / 4) * i;
+    ctx.fillStyle = '#8b949e';
+    ctx.font = '10px sans-serif';
+    ctx.textAlign = 'right';
+    ctx.fillText(val.toFixed(3), pad.left - 5, y + 3);
+  }
+
+  // Line
+  ctx.beginPath();
+  ctx.strokeStyle = '#00ff88';
+  ctx.lineWidth = 2;
+  ctx.lineJoin = 'round';
+
+  lossData.forEach((v, i) => {
+    const x = pad.left + (i / (lossData.length - 1)) * cw;
+    const y = pad.top + ((maxLoss - v) / range) * ch;
+    if (i === 0) ctx.moveTo(x, y);
+    else ctx.lineTo(x, y);
+  });
+  ctx.stroke();
+
+  // Gradient fill
+  const gradient = ctx.createLinearGradient(0, pad.top, 0, pad.top + ch);
+  gradient.addColorStop(0, 'rgba(0, 255, 136, 0.2)');
+  gradient.addColorStop(1, 'rgba(0, 255, 136, 0)');
+
+  ctx.lineTo(pad.left + cw, pad.top + ch);
+  ctx.lineTo(pad.left, pad.top + ch);
+  ctx.closePath();
+  ctx.fillStyle = gradient;
+  ctx.fill();
+
+  // Axis labels
+  ctx.fillStyle = '#8b949e';
+  ctx.font = '10px sans-serif';
+  ctx.textAlign = 'center';
+  ctx.fillText('Epoch', w / 2, h - 5);
+}
+
+// ─── Logging ─────────────────────────────────────
+function log(msg, type = '') {
+  const el = document.getElementById('logArea');
+  const entry = document.createElement('div');
+  entry.className = `log-entry ${type}`;
+  const time = new Date().toLocaleTimeString();
+  entry.textContent = `[${time}] ${msg}`;
+  el.appendChild(entry);
+  el.scrollTop = el.scrollHeight;
+}
+
+// ─── Live JSON sync ──────────────────────────────
+document.getElementById('layerList').addEventListener('input', updateJsonFromBuilder);
+document.getElementById('dataset').addEventListener('change', updateJsonFromBuilder);
+document.getElementById('optimizer').addEventListener('change', updateJsonFromBuilder);
+document.getElementById('loss').addEventListener('change', updateJsonFromBuilder);
+document.getElementById('lr').addEventListener('input', updateJsonFromBuilder);
+document.getElementById('epochs').addEventListener('input', updateJsonFromBuilder);
+</script>
+</body>
+</html>
